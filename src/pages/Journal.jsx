@@ -44,7 +44,20 @@ export default function Journal() {
     if (!input.trim()) return;
     const userMsg = { sender: "user", text: input };
     const botMsg = { sender: "bot", text: "Terima kasih sudah mempercayakan ceritamu padaku 💜" };
-    const journal = { id: Date.now(), content: input, mood, createdAt: new Date().toISOString(), source: "web" };
+    
+    // VALIDASI: Memastikan jika user memilih Sedih, data yang dikirim menggunakan emoji 😭
+    let finalMood = mood;
+    if (mood.toLowerCase().includes("sedih") || mood.toLowerCase().includes("sad")) {
+      finalMood = "😭 Sedih";
+    }
+
+    const journal = { 
+      id: Date.now(), 
+      content: input, 
+      mood: finalMood, 
+      createdAt: new Date().toISOString(), 
+      source: "web" 
+    };
 
     try {
       saveJournal(journal);
@@ -100,7 +113,7 @@ export default function Journal() {
           {/* Custom Mood Picker (Kiri) */}
           <div className="relative shrink-0" ref={moodRef}>
             
-            {/* BACKDROP REDUP: Menggelapkan luar tanpa efek blur */}
+            {/* BACKDROP REDUP */}
             {isOpenMood && (
               <div 
                 className="fixed inset-0 bg-black/40 z-40 animate-in fade-in duration-200"
@@ -108,42 +121,52 @@ export default function Journal() {
               />
             )}
 
-            {/* POPUP MENU: Warna solid, tanpa efek blur */}
+            {/* POPUP MENU */}
             {isOpenMood && (
               <div className="absolute bottom-[64px] right-0 w-64 bg-slate-950 border border-purple-500/10 rounded-3xl p-3 shadow-[0_10px_30px_rgba(168,85,247,0.12)] z-50 flex flex-col gap-1.5 animate-in fade-in slide-in-from-bottom-3 duration-200">
                 <p className="text-[11px] font-semibold tracking-wider text-purple-400/80 uppercase px-2 pb-1 border-b border-slate-900">
                   Bagaimana perasaanmu?
                 </p>
                 <div className="grid grid-cols-2 gap-1.5 max-h-52 overflow-y-auto pt-1.5 pr-0.5 custom-scrollbar">
-                  {MOODS.map((m) => (
-                    <button
-                      key={m}
-                      onClick={() => {
-                        setMood(m);
-                        setIsOpenMood(false);
-                      }}
-                      className={`flex items-center gap-2 px-2.5 py-2 rounded-xl text-xs font-medium text-left transition-all ${
-                        mood === m
-                          ? "bg-purple-600/15 border border-purple-500/40 text-purple-200"
-                          : "bg-slate-900/50 hover:bg-slate-800/80 border border-transparent text-gray-300"
-                      }`}
-                    >
-                      <span className="text-base leading-none">{m.split(" ")[0]}</span>
-                      <span className="truncate">{m.split(" ").slice(1).join(" ")}</span>
-                    </button>
-                  ))}
+                  {MOODS.map((m) => {
+                    const isSedih = m.toLowerCase().includes("sedih") || m.toLowerCase().includes("sad");
+                    // Mengubah tampilan emoji khusus baris Sedih di dalam list dropdown
+                    const displayEmoji = isSedih ? "😭" : m.split(" ")[0];
+                    const displayText = m.split(" ").slice(1).join(" ");
+
+                    return (
+                      <button
+                        key={m}
+                        onClick={() => {
+                          setMood(m);
+                          setIsOpenMood(false);
+                        }}
+                        className={`flex items-center gap-2 px-2.5 py-2 rounded-xl text-xs font-medium text-left transition-all ${
+                          mood === m
+                            ? "bg-purple-600/15 border border-purple-500/40 text-purple-200"
+                            : "bg-slate-900/50 hover:bg-slate-800/80 border border-transparent text-gray-300"
+                        }`}
+                      >
+                        <span className="text-base leading-none">{displayEmoji}</span>
+                        <span className="truncate">{displayText}</span>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             )}
 
-            {/* Trigger Button: Warna solid, tanpa efek blur */}
+            {/* Trigger Button: Menggunakan 😭 jika mood aktif mengandung kata sedih/sad */}
             <button 
               onClick={() => setIsOpenMood(!isOpenMood)}
               className={`h-[52px] w-[52px] bg-slate-900 rounded-2xl border flex items-center justify-center text-xl shadow-xl transition-all active:scale-95 relative z-50 ${
                 isOpenMood ? "border-purple-500/50 shadow-[0_0_15px_rgba(168,85,247,0.15)]" : "border-purple-500/10 hover:border-purple-500/40"
               }`}
             >
-              {mood.split(" ")[0]}
+              {mood.toLowerCase().includes("sedih") || mood.toLowerCase().includes("sad") 
+                ? "😭" 
+                : mood.split(" ")[0]
+              }
             </button>
           </div>
 
